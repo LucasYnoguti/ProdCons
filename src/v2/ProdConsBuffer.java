@@ -1,4 +1,4 @@
-package prodcons.v1;
+package v2;
 
 public class ProdConsBuffer implements IProdConsBuffer {
     private final Message[] buffer;
@@ -7,14 +7,16 @@ public class ProdConsBuffer implements IProdConsBuffer {
     private int totmsg;
     private int in;
     private int out;
+    private int activeProducers;
 
-    public ProdConsBuffer(int bufferSz) {
+    public ProdConsBuffer(int bufferSz, int nProd) {
         this.bufferSz = bufferSz;
         this.buffer = new Message[bufferSz];
         this.nmsg = 0;
         this.totmsg = 0;
         this.in = 0;
         this.out = 0;
+        this.activeProducers = nProd;
     }
     @Override
     public synchronized void put(Message m) throws InterruptedException {
@@ -36,11 +38,16 @@ public class ProdConsBuffer implements IProdConsBuffer {
     @Override
     public synchronized Message get() throws InterruptedException {
         // GARDE
-        while (!(nmsg != 0)) {
+        while (!(nmsg != 0) && activeProducers > 0) {
             wait();
         }
-
         // POST-ACTION
+
+        //if the buffer is empty and the producers are finished, end
+        if (nmsg == 0 && activeProducers == 0) {
+            return null; // termination sign
+        }
+
         Message m = buffer[out];
         out = (out + 1) % bufferSz;
         nmsg--;
@@ -57,5 +64,13 @@ public class ProdConsBuffer implements IProdConsBuffer {
     @Override
     public synchronized int totmsg() {
         return totmsg;
+    }
+
+    @Override
+    public synchronized void producerDone() {
+        this.activeProducers--;
+        if (this.activeProducers == 0) {
+            notifyAll();
+        }
     }
 }

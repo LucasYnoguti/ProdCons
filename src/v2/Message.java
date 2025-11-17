@@ -1,4 +1,4 @@
-package prodcons.v1;
+package v2;
 
 public class Message {
     private static int idCounter = 1;
@@ -10,7 +10,7 @@ public class Message {
     }
 
     public Message(long producerId) {
-        this.producerId = producerId; // Le stocker
+        this.producerId = producerId;
         this.id = getNextId();
     }
 
