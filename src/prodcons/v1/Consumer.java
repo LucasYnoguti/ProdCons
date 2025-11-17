@@ -13,7 +13,6 @@ public class Consumer extends   Thread {
         try {
             while (true) {
                 Message m = buffer.get();
-                System.out.println("C-" + getName() + " consumed: " + m);
                 Thread.sleep(consTime);
             }
         } catch (InterruptedException e) {

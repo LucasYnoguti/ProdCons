@@ -1,4 +1,4 @@
-package prodcons.v2;
+package prodcons.v1;
 
 public class ProdConsBuffer implements IProdConsBuffer {
     private final Message[] buffer;
@@ -29,7 +29,7 @@ public class ProdConsBuffer implements IProdConsBuffer {
         nmsg++;
         totmsg++;
 
-        System.out.println("P-" + m.getProducerId() + " produced: " + m);
+        System.out.println("produtor #" + m.getProducerId() + " produced message #" + m.getId());
         notifyAll();
     }
 
@@ -44,6 +44,7 @@ public class ProdConsBuffer implements IProdConsBuffer {
         Message m = buffer[out];
         out = (out + 1) % bufferSz;
         nmsg--;
+        System.out.println("consumidor #" + Thread.currentThread().getId() + " consumed message #" + m.getId());
         notifyAll();
         return m;
     }

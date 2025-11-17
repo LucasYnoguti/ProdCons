@@ -1,16 +1,31 @@
 package prodcons.v1;
 
 public class Message {
+    private static int idCounter = 1;
+    private final int id;
     private final String content;
-    private final String producerName;
+    private final long producerId;
 
-    public Message(String content, String producerName) {
+    private static synchronized int getNextId() {
+        return idCounter++;
+    }
+
+    public Message(String content, long producerId) {
         this.content = content;
-        this.producerName = producerName;
+        this.producerId = producerId; // Le stocker
+        this.id = getNextId();
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public long getProducerId() {
+        return producerId;
     }
 
     @Override
     public String toString() {
-        return "Message (by P-" + producerName + "): " + content;
+        return "Message #" + id + " (by P-" + producerId + "): " + content;
     }
 }

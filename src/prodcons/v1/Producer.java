@@ -19,14 +19,12 @@ public class Producer extends Thread {
         try {
             int noMsgs = minProd + rand.nextInt(maxProd - minProd + 1);
             for (int i = 1; i <= noMsgs; i++) {
-                Message m = new Message("Msg " + i + "/" + noMsgs, getName());
+                Message m = new Message("Msg " + i + "/" + noMsgs, getId());
                 buffer.put(m);
-                System.out.println("P-" + getName() + " produced: " + m);
                 Thread.sleep(prodTime);
             }
-            System.out.println(">> P-" + getName() + " finished.");
         } catch (InterruptedException e) {
-            System.err.println("Produtor " + getName() + " interrupted.");
+            System.err.println("Producer " + getId() + " interrupted.");
             Thread.currentThread().interrupt();
         }
     }
