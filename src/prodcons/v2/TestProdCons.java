@@ -1,4 +1,4 @@
-package v2;
+package prodcons.v2;
 
 import java.io.IOException;
 import java.util.Properties;

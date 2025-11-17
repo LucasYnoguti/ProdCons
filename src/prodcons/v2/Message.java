@@ -1,4 +1,4 @@
-package v2;
+package prodcons.v2;
 
 public class Message {
     private static int idCounter = 1;

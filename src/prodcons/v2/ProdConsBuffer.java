@@ -1,4 +1,4 @@
-package v2;
+package prodcons.v2;
 
 public class ProdConsBuffer implements IProdConsBuffer {
     private final Message[] buffer;
