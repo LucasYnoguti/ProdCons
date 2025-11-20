@@ -1,4 +1,4 @@
-package prodcons.v1;
+package prodcons.v3;
 
 import java.io.IOException;
 import java.util.Properties;
@@ -10,7 +10,7 @@ public class TestProdCons {
         Properties properties = new Properties();
         try {
             properties.loadFromXML(
-                    TestProdCons.class.getClassLoader().getResourceAsStream("prodcons/v1/options.xml")
+                    TestProdCons.class.getClassLoader().getResourceAsStream("prodcons/v3/options.xml")
             );
         } catch (IOException e) {
             e.printStackTrace();
@@ -24,7 +24,7 @@ public class TestProdCons {
         int minProd = Integer.parseInt(properties.getProperty("minProd"));
         int maxProd = Integer.parseInt(properties.getProperty("maxProd"));
 
-        ProdConsBuffer prodConsBuffer = new ProdConsBuffer(bufSz);
+        ProdConsBuffer prodConsBuffer = new ProdConsBuffer(bufSz, nProd);
         Random rand = new Random();
         int r, curCons= 0, curProd=0;
 
@@ -42,8 +42,3 @@ public class TestProdCons {
         }
     }
 }
-/*
-Opération      |    Pre-action   |          Garde       |               Post-action
-put(Message m) |                 |  nmsg != bufferSz    | buffer[in] = m; in = (in + 1) % bufferSz; nmsg++; totmsg++; notifyAll();
-Message get()  |                 |  nmsg != 0           | Message m = buffer[out]; out = (out + 1) % bufferSz; nmsg--; notifyAll();
-*/
