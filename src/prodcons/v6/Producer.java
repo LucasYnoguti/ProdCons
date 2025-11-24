@@ -20,7 +20,8 @@ public class Producer extends Thread {
             int noMsgs = minProd + rand.nextInt(maxProd - minProd + 1);
             for (int i = 1; i <= noMsgs; i++) {
                 Message m = new Message(getId());
-                buffer.put(m);
+                int n = 5;
+                buffer.put(m, n);
                 Thread.sleep(prodTime);
             }
         } catch (InterruptedException e) {

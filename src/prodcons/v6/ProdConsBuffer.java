@@ -14,7 +14,6 @@ public class ProdConsBuffer implements IProdConsBuffer {
     private final Semaphore notFull;
     private final Semaphore notEmpty;
     private final Semaphore mutex;
-    private final Semaphore consumerMutex;
 
     public ProdConsBuffer(int bufferSz, int nProd) {
         this.bufferSz = bufferSz;
@@ -28,14 +27,14 @@ public class ProdConsBuffer implements IProdConsBuffer {
         this.notFull = new Semaphore(bufferSz);
         this.notEmpty = new Semaphore(0);
         this.mutex = new Semaphore(1);
-        this.consumerMutex = new Semaphore(1);
     }
 
     @Override
-    public void put(Message m) throws InterruptedException {
+    public void put(Message m, int n) throws InterruptedException {
         notFull.acquire();
         mutex.acquire();
         try {
+            m.setPendingCopies(n);
             buffer[in] = m;
             in = (in + 1) % bufferSz;
             nmsg++;
@@ -45,60 +44,50 @@ public class ProdConsBuffer implements IProdConsBuffer {
         } finally {
             mutex.release();
         }
-
-        notEmpty.release();
+        //releasing n times so that n producers enter and get the instances of the msg
+        notEmpty.release(n);
+        //blocking producer until all messages are consumed
+        m.waitUntilConsumed();
     }
-    private Message getInternal() throws InterruptedException {
+
+    @Override
+    public Message get() throws InterruptedException {
         notEmpty.acquire();
         Message m = null;
+        boolean isLastConsumer = false;
         mutex.acquire();
         try {
             if (nmsg == 0 && activeProducers == 0) {
                 notEmpty.release();
                 return null;
             }
+            //reading, will only release when all instances of msg are gotten
             m = buffer[out];
-            out = (out + 1) % bufferSz;
-            nmsg--;
 
-            System.out.println(
-                    "Consumer #" + Thread.currentThread().getId() + " consumed message #" + m.getId()
-            );
         } finally {
             mutex.release();
         }
-        notFull.release();
-        return m;
-    }
+        //outside the mutex to avoid deadlock
+        if (m != null) {
+            System.out.println("Consumer #" + Thread.currentThread().getId() + " taking copy of message #" + m.getId());
 
-    @Override
-    public Message get() throws InterruptedException {
-        consumerMutex.acquire();
-        try {
-            return getInternal();
-        } finally {
-            consumerMutex.release();
-        }
-    }
+            isLastConsumer = m.consumeSync();
 
+            System.out.println("Consumer #" + Thread.currentThread().getId() + " finished message #" + m.getId());
 
-    @Override
-    public Message[] get(int k) throws InterruptedException {
-        Message[] messages = new Message[k];
-        consumerMutex.acquire();
-        System.out.println("Consumer #" + Thread.currentThread().getId() + " trying to get " + k + " messages.");
-        try {
-            for (int i = 0; i < k; i++) {
-                messages[i] = this.getInternal();
-                if (messages[i] == null) {
-                    break;
+            if (isLastConsumer) {
+                mutex.acquire();
+                try {
+                    out = (out + 1) % bufferSz;
+                    nmsg--;
+
+                    notFull.release();
+                } finally {
+                    mutex.release();
                 }
             }
-        } finally {
-            consumerMutex.release();
         }
-
-        return messages;
+        return m;
     }
 
     @Override
