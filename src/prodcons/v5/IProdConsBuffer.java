@@ -25,10 +25,4 @@ public interface IProdConsBuffer {
      * been put in the buffer since its creation
      **/
     public int totmsg();
-
-    /**
-     * Signal to the buffer that a producer is done
-     */
-    public void producerDone() throws InterruptedException;
 }
-

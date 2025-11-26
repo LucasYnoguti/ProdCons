@@ -20,9 +20,6 @@ public class Consumer extends   Thread {
                     Thread.sleep(consTime);
                 } else {
                     Message[] messages = buffer.get(batchSize);
-                    if (messages == null || messages.length == 0 || messages[0] == null) {
-                        break;
-                    }
                     Thread.sleep(consTime * messages.length);
                 }
             }

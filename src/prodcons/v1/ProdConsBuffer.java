@@ -59,3 +59,9 @@ public class ProdConsBuffer implements IProdConsBuffer {
         return totmsg;
     }
 }
+
+/*
+Opération      |    Pre-action   |          Garde       |               Post-action
+put(Message m) |                 |  nmsg != bufferSz    | buffer[in] = m; in = (in + 1) % bufferSz; nmsg++; totmsg++; notifyAll();
+Message get()  |                 |  nmsg != 0           | Message m = buffer[out]; out = (out + 1) % bufferSz; nmsg--; notifyAll();
+*/

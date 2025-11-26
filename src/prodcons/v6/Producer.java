@@ -7,12 +7,14 @@ public class Producer extends Thread {
     private final int minProd;
     private final int maxProd;
     private final int prodTime;
+    private final int nCopies;
     private final Random rand = new Random();
-    public Producer(ProdConsBuffer buffer, int minProd, int maxProd, int prodTime) {
+    public Producer(ProdConsBuffer buffer, int minProd, int maxProd, int prodTime, int nCopies) {
         this.buffer = buffer;
         this.minProd = minProd;
         this.maxProd = maxProd;
         this.prodTime = prodTime;
+        this.nCopies = nCopies;
     }
     @Override
     public void run() {
@@ -20,19 +22,12 @@ public class Producer extends Thread {
             int noMsgs = minProd + rand.nextInt(maxProd - minProd + 1);
             for (int i = 1; i <= noMsgs; i++) {
                 Message m = new Message(getId());
-                int n = 5;
-                buffer.put(m, n);
+                buffer.put(m, nCopies);
                 Thread.sleep(prodTime);
             }
         } catch (InterruptedException e) {
             System.err.println("Producer " + getId() + " interrupted.");
             Thread.currentThread().interrupt();
-        } finally {
-            try {
-                buffer.producerDone();
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
-            }
         }
     }
 }

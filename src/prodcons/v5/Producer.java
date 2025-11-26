@@ -26,12 +26,6 @@ public class Producer extends Thread {
         } catch (InterruptedException e) {
             System.err.println("Producer " + getId() + " interrupted.");
             Thread.currentThread().interrupt();
-        } finally {
-            try {
-                buffer.producerDone();
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
-            }
         }
     }
 }

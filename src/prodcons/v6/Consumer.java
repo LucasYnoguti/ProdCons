@@ -13,9 +13,6 @@ public class Consumer extends Thread {
         try {
             while (true) {
                 Message m = buffer.get();
-                if (m == null) {
-                    break;
-                }
                 Thread.sleep(consTime);
             }
         } catch (InterruptedException e) {

@@ -4,8 +4,8 @@
     <entry key="nProd">5</entry>
     <entry key="nCons">5</entry>
     <entry key="bufSz">5</entry>
-    <entry key="prodTime">10</entry>
+    <entry key="prodTime">1000</entry>
     <entry key="consTime">1000</entry>
-    <entry key="minProd">5</entry>
-    <entry key="maxProd">6</entry>
+    <entry key="minProd">10</entry>
+    <entry key="maxProd">300</entry>
 </properties>

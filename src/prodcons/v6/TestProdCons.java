@@ -10,7 +10,7 @@ public class TestProdCons {
         Properties properties = new Properties();
         try {
             properties.loadFromXML(
-                    TestProdCons.class.getClassLoader().getResourceAsStream("prodcons/v3/options.xml")
+                    TestProdCons.class.getClassLoader().getResourceAsStream("prodcons/v6/options.xml")
             );
         } catch (IOException e) {
             e.printStackTrace();
@@ -23,7 +23,7 @@ public class TestProdCons {
         int consTime = Integer.parseInt(properties.getProperty("consTime"));
         int minProd = Integer.parseInt(properties.getProperty("minProd"));
         int maxProd = Integer.parseInt(properties.getProperty("maxProd"));
-        int n = 5;
+        int nCopies =  Integer.parseInt(properties.getProperty("nCopies"));
 
         ProdConsBuffer prodConsBuffer = new ProdConsBuffer(bufSz, nProd);
         Random rand = new Random();
@@ -37,7 +37,7 @@ public class TestProdCons {
                 curCons++;
             }
             else if(curProd < nProd || curCons == nCons) {
-                new Producer(prodConsBuffer, minProd, maxProd, prodTime).start();
+                new Producer(prodConsBuffer, minProd, maxProd, prodTime, nCopies).start();
                 curProd++;
             }
         }

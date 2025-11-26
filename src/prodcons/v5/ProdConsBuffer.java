@@ -9,7 +9,6 @@ public class ProdConsBuffer implements IProdConsBuffer {
     private int out;
     private int nmsg;
     private int totmsg;
-    private int activeProducers;
 
     private final Semaphore notFull;
     private final Semaphore notEmpty;
@@ -23,7 +22,6 @@ public class ProdConsBuffer implements IProdConsBuffer {
         this.out = 0;
         this.nmsg = 0;
         this.totmsg = 0;
-        this.activeProducers = nProd;
 
         this.notFull = new Semaphore(bufferSz);
         this.notEmpty = new Semaphore(0);
@@ -53,10 +51,6 @@ public class ProdConsBuffer implements IProdConsBuffer {
         Message m = null;
         mutex.acquire();
         try {
-            if (nmsg == 0 && activeProducers == 0) {
-                notEmpty.release();
-                return null;
-            }
             m = buffer[out];
             out = (out + 1) % bufferSz;
             nmsg--;
@@ -99,19 +93,6 @@ public class ProdConsBuffer implements IProdConsBuffer {
         }
 
         return messages;
-    }
-
-    @Override
-    public void producerDone() throws InterruptedException {
-        mutex.acquire();
-        try {
-            activeProducers--;
-            if (activeProducers == 0) {
-                notEmpty.release();
-            }
-        } finally {
-            mutex.release();
-        }
     }
 
     @Override

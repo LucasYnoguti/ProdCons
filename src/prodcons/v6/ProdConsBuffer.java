@@ -30,24 +30,24 @@ public class ProdConsBuffer implements IProdConsBuffer {
     }
 
     @Override
-    public void put(Message m, int n) throws InterruptedException {
+    public void put(Message m, int nCopies) throws InterruptedException {
         notFull.acquire();
         mutex.acquire();
         try {
-            m.setPendingCopies(n);
+            m.setPendingCopies(nCopies);
             buffer[in] = m;
             in = (in + 1) % bufferSz;
             nmsg++;
             totmsg++;
 
-            System.out.println("Producer #" + m.getProducerId() + " produced message #" + m.getId());
+            System.out.println("Producer #" + m.getProducerId() + " produced " + nCopies + " copies of message #" + m.getId());
         } finally {
             mutex.release();
         }
         //releasing n times so that n producers enter and get the instances of the msg
-        notEmpty.release(n);
+        notEmpty.release(nCopies);
         //blocking producer until all messages are consumed
-        m.waitUntilConsumed();
+        m.waitUntilFinished();
     }
 
     @Override
@@ -57,50 +57,27 @@ public class ProdConsBuffer implements IProdConsBuffer {
         boolean isLastConsumer = false;
         mutex.acquire();
         try {
-            if (nmsg == 0 && activeProducers == 0) {
-                notEmpty.release();
-                return null;
-            }
-            //reading, will only release when all instances of msg are gotten
             m = buffer[out];
 
-        } finally {
-            mutex.release();
-        }
-        //outside the mutex to avoid deadlock
-        if (m != null) {
-            System.out.println("Consumer #" + Thread.currentThread().getId() + " taking copy of message #" + m.getId());
-
-            isLastConsumer = m.consumeSync();
-
-            System.out.println("Consumer #" + Thread.currentThread().getId() + " finished message #" + m.getId());
+            isLastConsumer = m.decrement();
 
             if (isLastConsumer) {
-                mutex.acquire();
-                try {
-                    out = (out + 1) % bufferSz;
-                    nmsg--;
-
-                    notFull.release();
-                } finally {
-                    mutex.release();
-                }
+                out = (out + 1) % bufferSz;
+                nmsg--;
+                notFull.release();
+                m.signalFinished();
             }
-        }
-        return m;
-    }
 
-    @Override
-    public void producerDone() throws InterruptedException {
-        mutex.acquire();
-        try {
-            activeProducers--;
-            if (activeProducers == 0) {
-                notEmpty.release();
-            }
+            System.out.println("Consumer #" + Thread.currentThread().getId() +
+                    " taking copy of message #" + m.getId());
+
         } finally {
             mutex.release();
         }
+        m.waitUntilFinished();
+        System.out.println("Consumer #" + Thread.currentThread().getId() + " finished message #" + m.getId());
+
+        return m;
     }
 
     @Override

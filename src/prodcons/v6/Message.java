@@ -4,49 +4,38 @@ public class Message {
     private static int idCounter = 1;
     private final int id;
     private final long producerId;
-    private boolean isLast;
-    private int pendingCopies;
+
+    // O contador de cópias pendentes
+    private int remainingCopies;
+
+    public Message(long producerId) {
+        this.producerId = producerId;
+        this.id = getNextId();
+    }
 
     private static synchronized int getNextId() {
         return idCounter++;
     }
 
-    public Message(long producerId) {
-        isLast = false;
-        this.producerId = producerId;
-        this.id = getNextId();
-    }
-
-    public int getId() {
-        return id;
-    }
-
-    public long getProducerId() {
-        return producerId;
-    }
-
     public synchronized void setPendingCopies(int n) {
-        this.pendingCopies = n;
+        this.remainingCopies = n;
     }
 
-    public synchronized boolean consumeSync() throws InterruptedException {
-        pendingCopies--;
-
-        if (pendingCopies > 0) {
-            while (pendingCopies > 0) {
-                wait();
-            }
-            return false; // Não sou o último
-        } else {
-            isLast = true;
-            notifyAll();
-            return true;
-        }
+    public synchronized boolean decrement() {
+        remainingCopies--;
+        return (remainingCopies == 0);
     }
 
-    public synchronized void waitUntilConsumed() throws InterruptedException {
-        while (pendingCopies > 0) {
+    public synchronized void waitUntilFinished() throws InterruptedException {
+        while (remainingCopies > 0) {
             wait();
         }
     }
+
+    public synchronized void signalFinished() {
+        notifyAll();
+    }
+
+    public int getId() { return id; }
+    public long getProducerId() { return producerId; }
 }
