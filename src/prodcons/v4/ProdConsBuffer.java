@@ -1,6 +1,8 @@
-package prodcons.v3;
+package prodcons.v4;
 
-import java.util.concurrent.Semaphore;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class ProdConsBuffer implements IProdConsBuffer {
     private final Message[] buffer;
@@ -9,85 +11,82 @@ public class ProdConsBuffer implements IProdConsBuffer {
     private int out;
     private int nmsg;
     private int totmsg;
+    private final Lock lock = new ReentrantLock();
 
-    private final Semaphore notFull;
-    private final Semaphore notEmpty;
-    private final Semaphore mutex;
+    private final Condition notFull = lock.newCondition();
+    private final Condition notEmpty = lock.newCondition();
 
-    public ProdConsBuffer(int bufferSz, int nProd) {
+    public ProdConsBuffer(int bufferSz) {
         this.bufferSz = bufferSz;
         this.buffer = new Message[bufferSz];
         this.in = 0;
         this.out = 0;
         this.nmsg = 0;
         this.totmsg = 0;
-
-        this.notFull = new Semaphore(bufferSz);
-        this.notEmpty = new Semaphore(0);
-        this.mutex = new Semaphore(1);
     }
 
     @Override
     public void put(Message m) throws InterruptedException {
-        notFull.acquire();
-        mutex.acquire();
+        lock.lock();
         try {
+            while (nmsg == bufferSz) {
+                notFull.await();
+            }
+
             buffer[in] = m;
             in = (in + 1) % bufferSz;
             nmsg++;
             totmsg++;
 
             System.out.println("Producer #" + m.getProducerId() + " produced message #" + m.getId());
-        } finally {
-            mutex.release();
-        }
 
-        notEmpty.release();
+            notEmpty.signal();
+
+        } finally {
+            lock.unlock();
+        }
     }
 
     @Override
     public Message get() throws InterruptedException {
-        notEmpty.acquire();
-        Message m = null;
-        mutex.acquire();
+        lock.lock();
         try {
-            m = buffer[out];
+            while (nmsg == 0) {
+                notEmpty.await();
+            }
+
+            Message m = buffer[out];
             out = (out + 1) % bufferSz;
             nmsg--;
 
             System.out.println("Consumer #" + Thread.currentThread().getId() + " consumed message #" + m.getId());
+
+            notFull.signal();
+
+            return m;
+
         } finally {
-            mutex.release();
+            lock.unlock();
         }
-        notFull.release();
-        return m;
     }
 
     @Override
     public int nmsg() {
-        int val = 0;
+        lock.lock();
         try {
-            mutex.acquire();
-            val = nmsg;
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
+            return nmsg;
         } finally {
-            mutex.release();
+            lock.unlock();
         }
-        return val;
     }
 
     @Override
     public int totmsg() {
-        int val = 0;
+        lock.lock();
         try {
-            mutex.acquire();
-            val = totmsg;
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
+            return totmsg;
         } finally {
-            mutex.release();
+            lock.unlock();
         }
-        return val;
     }
 }

@@ -1,4 +1,4 @@
-package prodcons.v5;
+package prodcons.v4;
 
 import java.io.IOException;
 import java.util.Properties;
@@ -10,7 +10,7 @@ public class TestProdCons {
         Properties properties = new Properties();
         try {
             properties.loadFromXML(
-                    TestProdCons.class.getClassLoader().getResourceAsStream("prodcons/v5/options.xml")
+                    TestProdCons.class.getClassLoader().getResourceAsStream("prodcons/v1/options.xml")
             );
         } catch (IOException e) {
             e.printStackTrace();
@@ -23,19 +23,19 @@ public class TestProdCons {
         int consTime = Integer.parseInt(properties.getProperty("consTime"));
         int minProd = Integer.parseInt(properties.getProperty("minProd"));
         int maxProd = Integer.parseInt(properties.getProperty("maxProd"));
-        int maxCons = Integer.parseInt(properties.getProperty("maxCons"));
 
-        ProdConsBuffer prodConsBuffer = new ProdConsBuffer(bufSz, nProd);
+        ProdConsBuffer prodConsBuffer = new ProdConsBuffer(bufSz);
         Random rand = new Random();
         int r, curCons= 0, curProd=0;
 
+        //create producers and consumers randomly
         for (int i = 0; i < nCons + nProd; i++) {
             r = rand.nextInt(2);
-            if ((r == 0 && curCons < nCons) || curProd == nProd) {
-                int k = rand.nextInt(maxCons) + 1;
-                new Consumer(prodConsBuffer, consTime, k).start();
+            if((r == 0 && curCons < nCons) || curProd == nProd) {
+                new Consumer(prodConsBuffer, consTime).start();
                 curCons++;
-            } else if (curProd < nProd || curCons == nCons) {
+            }
+            else if(curProd < nProd || curCons == nCons) {
                 new Producer(prodConsBuffer, minProd, maxProd, prodTime).start();
                 curProd++;
             }

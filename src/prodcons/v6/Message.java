@@ -4,8 +4,6 @@ public class Message {
     private static int idCounter = 1;
     private final int id;
     private final long producerId;
-
-    // O contador de cópias pendentes
     private int remainingCopies;
 
     public Message(long producerId) {
