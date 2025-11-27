@@ -34,6 +34,11 @@ public class Message {
         notifyAll();
     }
 
-    public int getId() { return id; }
-    public long getProducerId() { return producerId; }
+    public int getId() {
+        return id;
+    }
+
+    public long getProducerId() {
+        return producerId;
+    }
 }

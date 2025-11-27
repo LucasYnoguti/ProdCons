@@ -10,7 +10,7 @@ public class Message {
     }
 
     public Message(long producerId) {
-        this.producerId = producerId; // Le stocker
+        this.producerId = producerId;
         this.id = getNextId();
     }
 

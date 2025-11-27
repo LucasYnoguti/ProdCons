@@ -19,7 +19,7 @@ public class ProdConsBuffer implements IProdConsBuffer {
     @Override
     public synchronized void put(Message m) throws InterruptedException {
         // GARDE
-        while (!(nmsg != bufferSz)) {
+        while (nmsg == bufferSz) {
             wait();
         }
 
@@ -36,7 +36,7 @@ public class ProdConsBuffer implements IProdConsBuffer {
     @Override
     public synchronized Message get() throws InterruptedException {
         // GARDE
-        while (!(nmsg != 0)) {
+        while (nmsg == 0) {
             wait();
         }
 

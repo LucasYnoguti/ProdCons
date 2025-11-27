@@ -21,7 +21,7 @@ public class ProdConsBuffer implements IProdConsBuffer {
     @Override
     public synchronized void put(Message m) throws InterruptedException {
         // GARDE
-        while (!(nmsg != bufferSz)) {
+        while (nmsg == bufferSz) {
             wait();
         }
 
@@ -38,11 +38,11 @@ public class ProdConsBuffer implements IProdConsBuffer {
     @Override
     public synchronized Message get() throws InterruptedException {
         // GARDE
-        while (!(nmsg != 0) && activeProducers > 0) {
+        while (nmsg == 0 && activeProducers > 0) {
             wait();
         }
-        // POST-ACTION
 
+        // POST-ACTION
         //if the buffer is empty and the producers are finished, end
         if (nmsg == 0 && activeProducers == 0) {
             return null; // termination sign

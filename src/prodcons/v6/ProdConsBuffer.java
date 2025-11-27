@@ -68,14 +68,12 @@ public class ProdConsBuffer implements IProdConsBuffer {
                 m.signalFinished();
             }
 
-            System.out.println("Consumer #" + Thread.currentThread().getId() +
-                    " taking copy of message #" + m.getId());
+            System.out.println("Consumer #" + Thread.currentThread().getId() + " taking copy of message #" + m.getId());
 
         } finally {
             mutex.release();
         }
         m.waitUntilFinished();
-        System.out.println("Consumer #" + Thread.currentThread().getId() + " finished message #" + m.getId());
 
         return m;
     }

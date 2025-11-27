@@ -84,9 +84,6 @@ public class ProdConsBuffer implements IProdConsBuffer {
         try {
             for (int i = 0; i < k; i++) {
                 messages[i] = this.getInternal();
-                if (messages[i] == null) {
-                    break;
-                }
             }
         } finally {
             consumerMutex.release();
